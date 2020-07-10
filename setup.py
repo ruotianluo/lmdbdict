@@ -7,3 +7,4 @@ setuptools.setup(
     author_email="rluo@ttic.edu",
     packages=setuptools.find_packages(),
     python_requires='>=3.6',
+)
