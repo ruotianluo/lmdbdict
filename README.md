@@ -29,3 +29,17 @@ del d
 d = LMDBDict(lmdbpath, mode = 'r')
 d[1]
 ```
+
+# Folder to lmdb
+For directory structure like this.
+```
+folder1
+  - folder2
+    - x.txt
+  - y.txt
+```
+run
+```
+python folder2lmdb.py -f folder1 --lmdb folder1.lmdb
+```
+You will get keys to be `['folder2/x.txt', 'y.txt']`.

@@ -103,12 +103,12 @@ def folder2lmdb_(directory, lmdb_path, write_frequency=2500, num_workers=16):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--f", "--folder", type=str)
+    parser.add_argument("-f", "--folder", type=str)
     parser.add_argument('--lmdb', type=str, required=True)
     parser.add_argument('-p', '--procs', type=int, default=20)
 
     args = parser.parse_args()
 
-    folder2lmdb_(args.folder, args.out,  num_workers=args.procs)
+    folder2lmdb_(args.folder, args.lmdb,  num_workers=args.procs)
     # x = LMDBDict(args.out)
     # import pudb;pu.db
