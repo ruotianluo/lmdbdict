@@ -5,7 +5,7 @@ This is a lib trying to make lmdb behaved like a python dict.
 Many adopted from https://github.com/Lyken17/Efficient-PyTorch.
 
 # Install
-pip install git+
+pip install git+https://github.com/ruotianluo/lmdbdict.git
 
 # How to use
 
