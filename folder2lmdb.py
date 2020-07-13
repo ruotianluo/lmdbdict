@@ -24,7 +24,7 @@ class Folder(data.Dataset):
         self.root = root
 
         self.files = glob.glob(root+'/**/*', recursive=True) 
-        self.files = [os.path.relpath(_, root) for _ in self.files]
+        self.files = [os.path.relpath(_, root) for _ in self.files if os.path.isfile(_)]
 
     def __getitem__(self, index):
         """
