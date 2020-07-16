@@ -3,11 +3,15 @@ import pickle
 import os
 
 
+def identity(x):
+    return x
+
+
 VALUE_DUMPS = dict(
-    identity=lambda x:x
+    identity=identity
 )
 VALUE_LOADS = dict(
-    identity=lambda x:x
+    identity=identity
 )
 
 
