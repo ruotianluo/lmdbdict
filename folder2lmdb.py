@@ -83,7 +83,7 @@ def folder2lmdb_(directory, lmdb_path, write_frequency=2500, num_workers=16):
     data_loader = DataLoader(dataset, num_workers=num_workers, collate_fn=lambda x: x)
 
     print("Generate LMDB to %s" % lmdb_path)
-    db = LMDBDict(lmdb_path, mode='w')
+    db = LMDBDict(lmdb_path, mode='w', value_dumps='identity', value_loads='identity')
     
     print(len(dataset), len(data_loader))
     keys = []
