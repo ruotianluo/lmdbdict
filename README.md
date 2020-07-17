@@ -1,11 +1,16 @@
 # lmdbdict
+[![PyPI version](https://badge.fury.io/py/lmdbdict.svg)](https://badge.fury.io/py/lmdbdict)
 
 This is a lib trying to make lmdb behaved like a python dict.
 
 Many adopted from https://github.com/Lyken17/Efficient-PyTorch.
 
 # Install
-pip install git+https://github.com/ruotianluo/lmdbdict.git
+```pip install lmdbdict```
+
+or build from master:
+
+```pip install git+https://github.com/ruotianluo/lmdbdict.git```
 
 # How to use
 
