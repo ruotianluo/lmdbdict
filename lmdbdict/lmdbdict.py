@@ -2,21 +2,29 @@ import lmdb
 import pickle
 import os
 
-
+# Only use when you are sure the input is a byte
 def identity(x):
     return x
 
+def ascii_encode(x):
+    return x.encode('ascii')
 
-VALUE_DUMPS = dict(
-    identity=identity
-)
-VALUE_LOADS = dict(
-    identity=identity
+def ascii_decode(x):
+    return x.decode('ascii')
+
+DUMPS_FUNC = dict(
+    identity=identity,
+    ascii=ascii_encode,
 )
 
+LOADS_FUNC = dict(
+    identity=identity,
+    ascii=ascii_decode,
+)
 
 class LMDBDict:
     def __init__(self, lmdb_path, mode='r',
+                 key_dumps=None, key_loads=None,
                  value_dumps=None, value_loads=None):
         """
         value_dumps/loads can be picklable functions
@@ -35,37 +43,50 @@ class LMDBDict:
             if self.mode == 'r':
                 print('Reading an empty lmdb')
         
-        if self.db_txn.get(b'__value_dumps__') is not None and\
-           self.db_txn.get(b'__value_loads__') is not None:
-            saved_dumps = pickle.loads(self.db_txn.get(b'__value_dumps__'))
-            saved_loads = pickle.loads(self.db_txn.get(b'__value_loads__'))
-            assert (value_dumps == saved_dumps or value_dumps is None) \
-                and (value_loads == saved_loads or value_loads is None), \
-                'value_dumps and value_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
-            value_dumps, value_loads = saved_dumps, saved_loads
+        self._init_dumps_loads(value_dumps, value_loads, which='value')
+        self._init_dumps_loads(key_dumps, key_loads, which='key')
+
+    def _init_dumps_loads(self, dumps, loads, which='value'):
+        """
+        Initialize the key/value dumps loads function according to
+        the user input or the db.
+        """
+        # The keys in the db
+        db_dumps = f'__{which}_dumps__'.encode('ascii')
+        db_loads = f'__{which}_loads__'.encode('ascii')
+
+        if self.db_txn.get(db_dumps) is not None and\
+           self.db_txn.get(db_loads) is not None:
+            saved_dumps = pickle.loads(self.db_txn.get(db_dumps))
+            saved_loads = pickle.loads(self.db_txn.get(db_loads))
+            assert (dumps == dumps or dumps is None) \
+                and (loads == loads or loads is None), \
+                f'{which}_dumps and {which}_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
+            dumps, loads = saved_dumps, saved_loads
         elif self.mode == 'w':
             # Write to the db_txn
-            self.db_txn.put(b'__value_dumps__', pickle.dumps(value_dumps))
-            self.db_txn.put(b'__value_loads__', pickle.dumps(value_loads))
+            self.db_txn.put(db_dumps, pickle.dumps(dumps))
+            self.db_txn.put(db_loads, pickle.dumps(loads))
             self.db_txn.commit()
             self.db_txn = self.env.begin(write=True)
         elif self.mode == 'r':
             # Note, here there is no value dumps and loads in db
             # Will use default pickle
-            assert value_dumps is None and value_loads is None, \
-                'cannot set the value_dumps and value_loads under read mode'
-            print("No value dumps and loads found in lmdb, will use pickle")
+            assert dumps is None and loads is None, \
+                f'cannot set the {which}_dumps and {which}_loads under read mode'
+            print("No {which} dumps and loads found in lmdb, will use pickle")
 
-        if value_dumps is None and value_loads  is None:
-            self._value_dumps = pickle.dumps
-            self._value_loads = pickle.loads
-        elif type(value_dumps) is str and type(value_loads) is str:
-            self._value_dumps = VALUE_DUMPS[value_dumps]
-            self._value_loads = VALUE_LOADS[value_loads]
+        if dumps is None or loads is None:
+            assert dumps == loads, f'The {which}_dumps and {which}_loads have to be both None'
+            setattr(self, f'_{which}_dumps', pickle.dumps)
+            setattr(self, f'_{which}_loads', pickle.loads)
+        elif type(dumps) is str and type(loads) is str:
+            assert dumps == loads, f'The {which}_dumps and {which}_loads have to correspondant'
+            setattr(self, f'_{which}_dumps', DUMPS_FUNC[dumps])
+            setattr(self, f'_{which}_loads', LOADS_FUNC[loads])
         else: # have to be function
-            self._value_dumps = value_dumps
-            self._value_loads = value_loads
-
+            setattr(self, f'_{which}_dumps', dumps)
+            setattr(self, f'_{which}_loads', loads)
 
     def keys(self):
         return list(self._keys)
@@ -106,17 +127,17 @@ class LMDBDict:
     def __getitem__(self, key):
         if key not in self:
             raise KeyError
-        return self._value_loads(self.db_txn.get(pickle.dumps(key)))
+        return self._value_loads(self.db_txn.get(self._key_dumps(key)))
 
     def __setitem__(self, key, value):
         assert self.mode == 'w', 'can only write item in write mode'
         # in fact even key is __len__ it should be fine, because it's dumped in pickle mode.
         assert key not in ['__keys__'], f'{key} is internal variable, immutable to users'
-        self.db_txn.put(pickle.dumps(key), self._value_dumps(value))
+        self.db_txn.put(self._key_dumps(key), self._value_dumps(value))
         self._keys.add(key) # only update to the lmdb after flush
 
     def __delitem__(self, key):
-        self.db_txn.delete(pickle.dumps(key))
+        self.db_txn.delete(self._key_dumps(key))
         self._keys.remove(key)
 
     def values(self):
