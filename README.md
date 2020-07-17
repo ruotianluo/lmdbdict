@@ -1,6 +1,7 @@
 # lmdbdict
 ![CI test](https://github.com/ruotianluo/lmdbdict/workflows/CI%20test/badge.svg?event=push)
 [![PyPI version](https://badge.fury.io/py/lmdbdict.svg)](https://badge.fury.io/py/lmdbdict)
+[![Documentation Status](https://readthedocs.org/projects/lmdbdict/badge/?version=latest)](https://lmdbdict.readthedocs.io/en/latest/?badge=latest)
 
 This is a lib trying to make lmdb behaved like a python dict.
 
