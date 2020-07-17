@@ -9,6 +9,7 @@ import string
 import tqdm
 import lmdb
 from lmdbdict import LMDBDict
+import pickle
 
 import torch
 import torch.utils.data as data
@@ -16,6 +17,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from torchvision.datasets import ImageFolder
 from torchvision import transforms, datasets
+
 
 class Folder(data.Dataset):
 
@@ -38,6 +40,7 @@ class Folder(data.Dataset):
 
     def __len__(self):
         return len(self.files)
+
 
 # With original lmdb write
 def folder2lmdb(directory, lmdb_path, write_frequency=2500, num_workers=16):
