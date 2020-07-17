@@ -68,7 +68,7 @@ class LMDBDict:
 
 
     def keys(self):
-        return sorted(list(self._keys))
+        return list(self._keys)
 
     def __contains__(self, item):
         return item in self._keys
