@@ -77,19 +77,19 @@ def test_dumpsloads_from_nonempty_error(tmpdir, method1, method2):
         )
 
 
-@pytest.mark.parametrize("keys_fn, values_fn, inputs", [
+@pytest.mark.parametrize("key_method, value_method, inputs", [
     (None, None, ('key', 0)),
     ('identity', 'identity', (b'key', b'value')),
     ('ascii', 'ascii', ('key', 'value')),
     ('utf8', 'utf8', ('健', '值')),
     ('ascii', 'pyarrow', ('key', 'value')),
 ])
-def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
+def test_dumps_loads(tmpdir, key_method, value_method, inputs):
     kwargs = dict(
-        key_dumps=keys_fn,
-        key_loads=keys_fn,
-        value_dumps=values_fn,
-        value_loads=values_fn
+        key_dumps=key_method,
+        key_loads=key_method,
+        value_dumps=value_method,
+        value_loads=value_method
     )
     test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
     test_dict[inputs[0]] = inputs[1]
@@ -98,10 +98,51 @@ def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
     test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r')
     assert test_dict[inputs[0]] == inputs[1]
 
-    assert test_dict.db_txn.get(b'__value_dumps__') == pickle.dumps(values_fn)
-    assert test_dict.db_txn.get(b'__value_loads__') == pickle.dumps(values_fn)
-    assert test_dict.db_txn.get(b'__key_dumps__') == pickle.dumps(keys_fn)
-    assert test_dict.db_txn.get(b'__key_loads__') == pickle.dumps(keys_fn)
+    assert test_dict.db_txn.get(b'__value_dumps__') == pickle.dumps(value_method)
+    assert test_dict.db_txn.get(b'__value_loads__') == pickle.dumps(value_method)
+    assert test_dict.db_txn.get(b'__key_dumps__') == pickle.dumps(key_method)
+    assert test_dict.db_txn.get(b'__key_loads__') == pickle.dumps(key_method)
+
+
+@pytest.mark.parametrize("key_method, value_method, inputs", [
+    (None, None, ('key', 0)),
+    ('identity', 'identity', (b'key', b'value')),
+    ('ascii', 'ascii', ('key', 'value')),
+    ('utf8', 'utf8', ('健', '值')),
+    ('ascii', 'pyarrow', ('key', 'value')),
+])
+def test_method(tmpdir, key_method, value_method, inputs):
+    kwargs = dict(
+        key_method=key_method,
+        value_method=value_method,
+    )
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
+    test_dict[inputs[0]] = inputs[1]
+    del test_dict
+
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r')
+    assert test_dict[inputs[0]] == inputs[1]
+
+    assert test_dict.db_txn.get(b'__value_dumps__') == pickle.dumps(value_method)
+    assert test_dict.db_txn.get(b'__value_loads__') == pickle.dumps(value_method)
+    assert test_dict.db_txn.get(b'__key_dumps__') == pickle.dumps(key_method)
+    assert test_dict.db_txn.get(b'__key_loads__') == pickle.dumps(key_method)
+
+
+@pytest.mark.parametrize("method, dumps, loads", [
+    ('ascii', None, 'ascii'),
+    ('ascii', 'ascii', None),
+    ('ascii', 'ascii', 'ascii'),
+])
+def test_method_dumps_loads_conflict(tmpdir, method, dumps, loads):
+    inputs = ('key', 'value')
+    kwargs = dict(
+        key_method=method,
+        key_dumps=dumps,
+        key_loads=loads,
+    )
+    with pytest.raises(AssertionError):
+        test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
 
 
 @pytest.mark.skipif(not CLOUDPICKLE_AVAILABLE, reason="PickableWrapper requires cloudpickle")

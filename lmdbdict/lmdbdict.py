@@ -59,6 +59,7 @@ LOADS_FUNC = dict(
 
 class lmdbdict:
     def __init__(self, lmdb_path, mode='r',
+                 key_method=None, value_method=None,
                  key_dumps=None, key_loads=None,
                  value_dumps=None, value_loads=None):
         """
@@ -78,14 +79,18 @@ class lmdbdict:
             if self.mode == 'r':
                 print('Reading an empty lmdb')
 
-        self._init_dumps_loads(value_dumps, value_loads, which='value')
-        self._init_dumps_loads(key_dumps, key_loads, which='key')
+        self._init_dumps_loads(value_method, value_dumps, value_loads, which='value')
+        self._init_dumps_loads(key_method, key_dumps, key_loads, which='key')
 
-    def _init_dumps_loads(self, dumps, loads, which='value'):
+    def _init_dumps_loads(self, method, dumps, loads, which='value'):
         """
         Initialize the key/value dumps loads function according to
         the user input or the db.
         """
+
+        if method is not None:
+            assert dumps is None and loads is None, f'{which}_method and {which}_dumps/loads cannot both be non-None'
+            dumps = loads = method
 
         # Since the dumps or loads may be saved into db
         # Make them picklable first
@@ -103,7 +108,7 @@ class lmdbdict:
             saved_dumps = pickle.loads(self.db_txn.get(db_dumps))
             saved_loads = pickle.loads(self.db_txn.get(db_loads))
             assert dumps is None and loads is None, \
-                f'{which}_dumps and {which}_loads has to be None when read from a non-empty lmdb'
+                f'{which}_dumps/loads/method have to be None when read from a non-empty lmdb'
             # assert (getattr(dumps, '_obj', dumps) == saved_dumps or dumps is None) \
             #     and (getattr(loads, '_obj', loads) == saved_loads or loads is None), \
             #     f'{which}_dumps and {which}_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
