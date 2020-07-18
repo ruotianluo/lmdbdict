@@ -2,6 +2,13 @@ import lmdb
 import pickle
 import os
 
+try:
+    import pyarrow as pa
+except ImportError:
+    PYARROW_AVAILABLE = False
+else:
+    PYARROW_AVAILABLE = True
+
 
 # Only use when you are sure the input is a byte
 def identity(x):
@@ -16,14 +23,26 @@ def ascii_decode(x):
     return x.decode('ascii')
 
 
+def pa_dumps(x):
+    assert PYARROW_AVAILABLE, 'pyarrow not installed'
+    return pa.serialize(x).to_buffer()
+
+
+def pa_loads(x):
+    assert PYARROW_AVAILABLE, 'pyarrow not installed'
+    return pa.deserialize(x)
+
+
 DUMPS_FUNC = dict(
     identity=identity,
     ascii=ascii_encode,
+    pyarrow=pa_dumps,
 )
 
 LOADS_FUNC = dict(
     identity=identity,
     ascii=ascii_decode,
+    pyarrow=pa_loads,
 )
 
 
