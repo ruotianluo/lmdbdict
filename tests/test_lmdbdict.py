@@ -62,20 +62,19 @@ def test_error(tmpdir, key_dumps, key_loads):
 
 
 @pytest.mark.parametrize("method1", [
-    'identity', 'ascii',
+    None, 'identity', 'ascii',
 ])
 @pytest.mark.parametrize("method2", [
     'identity', 'ascii',
 ])
-def test_inconsistent_error(tmpdir, method1, method2):
-    if method1 != method2:
-        with pytest.raises(AssertionError):
-            test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
-                key_dumps=method1, key_loads=method1
-            )
-            test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
-                key_dumps=method2, key_loads=method2
-            )
+def test_dumpsloads_from_nonempty_error(tmpdir, method1, method2):
+    with pytest.raises(AssertionError):
+        test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
+            key_dumps=method1, key_loads=method1
+        )
+        test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
+            key_dumps=method2, key_loads=method2
+        )
 
 
 @pytest.mark.parametrize("keys_fn, values_fn, inputs", [
@@ -96,7 +95,7 @@ def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
     test_dict[inputs[0]] = inputs[1]
     del test_dict
 
-    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r', **kwargs)
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r')
     assert test_dict[inputs[0]] == inputs[1]
 
     assert test_dict.db_txn.get(b'__value_dumps__') == pickle.dumps(values_fn)

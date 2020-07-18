@@ -102,9 +102,11 @@ class lmdbdict:
            self.db_txn.get(db_loads) is not None:
             saved_dumps = pickle.loads(self.db_txn.get(db_dumps))
             saved_loads = pickle.loads(self.db_txn.get(db_loads))
-            assert (saved_dumps == dumps or dumps is None) \
-                and (saved_loads == loads or loads is None), \
-                f'{which}_dumps and {which}_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
+            assert dumps is None and loads is None, \
+                f'{which}_dumps and {which}_loads has to be None when read from a non-empty lmdb'
+            # assert (getattr(dumps, '_obj', dumps) == saved_dumps or dumps is None) \
+            #     and (getattr(loads, '_obj', loads) == saved_loads or loads is None), \
+            #     f'{which}_dumps and {which}_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
             dumps, loads = saved_dumps, saved_loads
         elif self.mode == 'w':
             # Write to the db_txn
