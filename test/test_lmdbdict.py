@@ -1,6 +1,7 @@
 from lmdbdict import LMDBDict
 import pytest
 import os
+import numpy as np
 import pickle
 import random
 
@@ -8,11 +9,15 @@ import random
 @pytest.fixture
 def random_input():
     # Various type of inputs
+    # int and str inputs
     candidates = list(range(10)) + \
                  list(map(str, range(10)))
+    # np inputs
+    np_candidates = list(map(np.array, range(10)))  # np array can't be keys
+    # return a dict
     d = {}
     for i in range(20):
-        d[random.choice(candidates)] = random.choice(candidates)
+        d[random.choice(candidates)] = random.choice(candidates+np_candidates)
     return d
 
 
