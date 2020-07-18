@@ -81,7 +81,6 @@ class lmdbdict:
         self._init_dumps_loads(value_dumps, value_loads, which='value')
         self._init_dumps_loads(key_dumps, key_loads, which='key')
 
-
     def _init_dumps_loads(self, dumps, loads, which='value'):
         """
         Initialize the key/value dumps loads function according to
@@ -118,7 +117,7 @@ class lmdbdict:
             # Will use default pickle
             assert dumps is None and loads is None, \
                 f'cannot set the {which}_dumps and {which}_loads under read mode'
-            print("No {which} dumps and loads found in lmdb, will use pickle")
+            print(f"No {which} dumps and loads found in lmdb, will use pickle")
 
         if dumps is None or loads is None:
             assert dumps == loads, f'The {which}_dumps and {which}_loads have to be both None'
