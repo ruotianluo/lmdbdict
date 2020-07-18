@@ -8,7 +8,7 @@ import string
 
 import tqdm
 import lmdb
-from lmdbdict import LMDBDict
+from lmdbdict import lmdbdict
 import pickle
 
 import torch
@@ -86,7 +86,7 @@ def folder2lmdb_(directory, lmdb_path, write_frequency=2500, num_workers=16):
     data_loader = DataLoader(dataset, num_workers=num_workers, collate_fn=lambda x: x)
 
     print("Generate LMDB to %s" % lmdb_path)
-    db = LMDBDict(lmdb_path, mode='w', value_dumps='identity', value_loads='identity')
+    db = lmdbdict(lmdb_path, mode='w', value_dumps='identity', value_loads='identity')
     
     print(len(dataset), len(data_loader))
     keys = []
@@ -113,5 +113,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     folder2lmdb_(args.folder, args.lmdb,  num_workers=args.procs)
-    # x = LMDBDict(args.out)
+    # x = lmdbdict(args.out)
     # import pudb;pu.db
