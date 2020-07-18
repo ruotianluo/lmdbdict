@@ -37,6 +37,9 @@ d = lmdbdict(lmdbpath, mode = 'r')
 d[1]
 ```
 
+Learn more at the [documentation](https://lmdbdict.readthedocs.io/).
+
+
 # Folder to lmdb
 For directory structure like this.
 ```
