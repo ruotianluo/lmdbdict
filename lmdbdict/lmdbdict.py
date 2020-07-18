@@ -1,6 +1,7 @@
 import lmdb
 import pickle
 import os
+from .utils import PicklableWrapper, picklable_wrapper
 
 try:
     import pyarrow as pa
@@ -80,11 +81,20 @@ class lmdbdict:
         self._init_dumps_loads(value_dumps, value_loads, which='value')
         self._init_dumps_loads(key_dumps, key_loads, which='key')
 
+
     def _init_dumps_loads(self, dumps, loads, which='value'):
         """
         Initialize the key/value dumps loads function according to
         the user input or the db.
         """
+
+        # Since the dumps or loads may be saved into db
+        # Make them picklable first
+        # Note: If dumps and loads are already picklable like str or None
+        # This functionwon't change them
+        dumps = picklable_wrapper(dumps)
+        loads = picklable_wrapper(loads)
+
         # The keys in the db
         db_dumps = f'__{which}_dumps__'.encode('ascii')
         db_loads = f'__{which}_loads__'.encode('ascii')
