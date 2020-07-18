@@ -50,6 +50,8 @@ def test_error(tmpdir, key_dumps, key_loads):
     (None, None, ('key', 0)),
     ('identity', 'identity', (b'key', b'value')),
     ('ascii', 'ascii', ('key', 'value')),
+    ('utf8', 'utf8', ('健', '值')),
+    ('ascii', 'pyarrow', ('key', 'value')),
 ])
 def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
     kwargs = dict(
