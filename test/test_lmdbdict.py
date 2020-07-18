@@ -1,4 +1,4 @@
-from lmdbdict import LMDBDict
+from lmdbdict import lmdbdict, LMDBDict
 import pytest
 import os
 import numpy as np
@@ -21,12 +21,16 @@ def random_input():
     return d
 
 
-def test_basic_functions(tmpdir, random_input):
-    test_dict = LMDBDict(os.path.join(tmpdir, 'test.lmdb'), 'w')
+# Make sure both LMDBDict and lmdbdict works
+@pytest.mark.parametrize("module", [
+    lmdbdict, LMDBDict
+])
+def test_basic_functions(tmpdir, random_input, module):
+    test_dict = module(os.path.join(tmpdir, 'test.lmdb'), 'w')
     for k, v in random_input.items():
         test_dict[k] = v
     del test_dict
-    test_dict = LMDBDict(os.path.join(tmpdir, 'test.lmdb'), 'r')
+    test_dict = module(os.path.join(tmpdir, 'test.lmdb'), 'r')
 
     # Assert values are correct
     for k, v in random_input.items():
@@ -46,7 +50,7 @@ def test_basic_functions(tmpdir, random_input):
 def test_error(tmpdir, key_dumps, key_loads):
     if key_dumps != key_loads:
         with pytest.raises(AssertionError):
-            test_dict = LMDBDict(os.path.join(tmpdir, 'test.lmdb'), 'w',
+            test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
                 key_dumps=key_dumps, key_loads=key_loads
             )
 
@@ -66,11 +70,11 @@ def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
         value_loads=values_fn
     )
     print(tmpdir)
-    test_dict = LMDBDict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
     test_dict[inputs[0]] = inputs[1]
     del test_dict
 
-    test_dict = LMDBDict(os.path.join(tmpdir, 'test.lmdb'), 'r', **kwargs)
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r', **kwargs)
     assert test_dict[inputs[0]] == inputs[1]
 
     assert test_dict.db_txn.get(b'__value_dumps__') == pickle.dumps(values_fn)

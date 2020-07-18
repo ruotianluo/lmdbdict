@@ -1,1 +1,1 @@
-from .lmdbdict import LMDBDict
+from .lmdbdict import lmdbdict, LMDBDict

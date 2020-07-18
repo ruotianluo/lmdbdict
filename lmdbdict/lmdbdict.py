@@ -56,7 +56,7 @@ LOADS_FUNC = dict(
 )
 
 
-class LMDBDict:
+class lmdbdict:
     def __init__(self, lmdb_path, mode='r',
                  key_dumps=None, key_loads=None,
                  value_dumps=None, value_loads=None):
@@ -206,3 +206,7 @@ class LMDBDict:
         self.db_txn.put(b'__keys__', pickle.dumps(self._keys))
         self.db_txn.commit()
         self.db_txn = self.env.begin(write=True)
+
+
+# Aliasing
+LMDBDict = lmdbdict

@@ -17,12 +17,12 @@ or build from master:
 # How to use
 
 ```
-from lmdbdict import LMDBDict
+from lmdbdict import lmdbdict
 
 lmdbpath = 'tmplmdb.lmdb'
 # In write mode, you can modify keys
 # keys and values can be any pickable objects
-d = LMDBDict(lmdbpath, mode = 'w')
+d = lmdbdict(lmdbpath, mode = 'w')
 d[1] = 2; d[2] = 3
 list(d.keys())
 d.values() # not supported
@@ -33,7 +33,7 @@ d.flush()
 del d
 
 # In read mode, you can only read
-d = LMDBDict(lmdbpath, mode = 'r')
+d = lmdbdict(lmdbpath, mode = 'r')
 d[1]
 ```
 
