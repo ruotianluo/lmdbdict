@@ -2,15 +2,19 @@ import lmdb
 import pickle
 import os
 
+
 # Only use when you are sure the input is a byte
 def identity(x):
     return x
 
+
 def ascii_encode(x):
     return x.encode('ascii')
 
+
 def ascii_decode(x):
     return x.decode('ascii')
+
 
 DUMPS_FUNC = dict(
     identity=identity,
@@ -21,6 +25,7 @@ LOADS_FUNC = dict(
     identity=identity,
     ascii=ascii_decode,
 )
+
 
 class LMDBDict:
     def __init__(self, lmdb_path, mode='r',
@@ -38,11 +43,11 @@ class LMDBDict:
         self._init_db()
         if self.db_txn.get(b'__keys__'):
             self._keys = pickle.loads(self.db_txn.get(b'__keys__'))
-        else: # no keys
+        else:  # no keys
             self._keys = set()
             if self.mode == 'r':
                 print('Reading an empty lmdb')
-        
+
         self._init_dumps_loads(value_dumps, value_loads, which='value')
         self._init_dumps_loads(key_dumps, key_loads, which='key')
 
@@ -84,7 +89,7 @@ class LMDBDict:
             assert dumps == loads, f'The {which}_dumps and {which}_loads have to correspondant'
             setattr(self, f'_{which}_dumps', DUMPS_FUNC[dumps])
             setattr(self, f'_{which}_loads', LOADS_FUNC[loads])
-        else: # have to be function
+        else:  # have to be function
             setattr(self, f'_{which}_dumps', dumps)
             setattr(self, f'_{which}_loads', loads)
 
@@ -118,7 +123,7 @@ class LMDBDict:
             )
             self.db_txn = self.env.begin(write=False)
         elif self.mode == 'w':
-            self.env= lmdb.open(
+            self.env = lmdb.open(
                 self.lmdb_path, subdir=False,
                 readonly=False, map_size=1099511627776 * 2,
                 meminit=False, map_async=True)
@@ -132,9 +137,10 @@ class LMDBDict:
     def __setitem__(self, key, value):
         assert self.mode == 'w', 'can only write item in write mode'
         # in fact even key is __len__ it should be fine, because it's dumped in pickle mode.
-        assert key not in ['__keys__'], f'{key} is internal variable, immutable to users'
+        assert key not in ['__keys__'], \
+            f'{key} is internal variable, immutable to users'
         self.db_txn.put(self._key_dumps(key), self._value_dumps(value))
-        self._keys.add(key) # only update to the lmdb after flush
+        self._keys.add(key)  # only update to the lmdb after flush
 
     def __delitem__(self, key):
         self.db_txn.delete(self._key_dumps(key))
@@ -148,7 +154,7 @@ class LMDBDict:
 
     def update(self, d):
         assert self.mode == 'w'
-        for k,v in d.items():
+        for k, v in d.items():
             self[k] = v
 
     def __len__(self):
