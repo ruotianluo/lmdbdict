@@ -4,6 +4,12 @@ import os
 import numpy as np
 import pickle
 import random
+try:
+    import cloudpickle
+except:
+    CLOUDPICKLE_AVAILABLE = False
+else:
+    CLOUDPICKLE_AVAILABLE = True
 
 
 @pytest.fixture
@@ -69,7 +75,6 @@ def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
         value_dumps=values_fn,
         value_loads=values_fn
     )
-    print(tmpdir)
     test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
     test_dict[inputs[0]] = inputs[1]
     del test_dict
@@ -81,3 +86,24 @@ def test_dumps_loads(tmpdir, keys_fn, values_fn, inputs):
     assert test_dict.db_txn.get(b'__value_loads__') == pickle.dumps(values_fn)
     assert test_dict.db_txn.get(b'__key_dumps__') == pickle.dumps(keys_fn)
     assert test_dict.db_txn.get(b'__key_loads__') == pickle.dumps(keys_fn)
+
+
+@pytest.mark.skipif(not CLOUDPICKLE_AVAILABLE, reason="PickableWrapper requires cloudpickle")
+def test_lambda_funcs_as_dumps_loads_input(tmpdir, random_input):
+    kwargs = dict(
+        value_dumps=lambda x: pickle.dumps(x),
+        value_loads=lambda x: pickle.loads(x)
+    )
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w', **kwargs)
+    for k, v in random_input.items():
+        test_dict[k] = v
+    del test_dict
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r')
+
+    # Assert values are correct
+    for k, v in random_input.items():
+        assert test_dict[k] == v
+    # Assert keys are correct
+    assert set(test_dict.keys()) == set(random_input.keys())
+    # Assert lens are correct
+    assert len(test_dict) == len(random_input)
