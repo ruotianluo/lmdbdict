@@ -102,8 +102,8 @@ class lmdbdict:
            self.db_txn.get(db_loads) is not None:
             saved_dumps = pickle.loads(self.db_txn.get(db_dumps))
             saved_loads = pickle.loads(self.db_txn.get(db_loads))
-            assert (dumps == dumps or dumps is None) \
-                and (loads == loads or loads is None), \
+            assert (saved_dumps == dumps or dumps is None) \
+                and (saved_loads == loads or loads is None), \
                 f'{which}_dumps and {which}_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
             dumps, loads = saved_dumps, saved_loads
         elif self.mode == 'w':

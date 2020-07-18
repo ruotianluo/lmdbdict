@@ -61,6 +61,23 @@ def test_error(tmpdir, key_dumps, key_loads):
             )
 
 
+@pytest.mark.parametrize("method1", [
+    'identity', 'ascii',
+])
+@pytest.mark.parametrize("method2", [
+    'identity', 'ascii',
+])
+def test_inconsistent_error(tmpdir, method1, method2):
+    if method1 != method2:
+        with pytest.raises(AssertionError):
+            test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
+                key_dumps=method1, key_loads=method1
+            )
+            test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w',
+                key_dumps=method2, key_loads=method2
+            )
+
+
 @pytest.mark.parametrize("keys_fn, values_fn, inputs", [
     (None, None, ('key', 0)),
     ('identity', 'identity', (b'key', b'value')),
