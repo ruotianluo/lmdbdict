@@ -8,13 +8,6 @@ Welcome to lmdbdict's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   how-to-use-it
+   modules/index
