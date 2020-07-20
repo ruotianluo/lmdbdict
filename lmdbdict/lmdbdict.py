@@ -73,7 +73,13 @@ class lmdbdict:
         self.mode = mode
         self._init_db()
         if self.db_txn.get(b'__keys__'):
-            self._keys = pickle.loads(self.db_txn.get(b'__keys__'))
+            try:
+                self._keys = pickle.loads(self.db_txn.get(b'__keys__'))
+            except:
+                print('cant decode the keys saved in the lmdb, leave it empty now')
+                self._keys = set()
+                if self.mode == 'w':
+                    print('Warning: any change you make under write mode may not be revertable.')
         else:  # no keys
             self._keys = set()
             if self.mode == 'r':
