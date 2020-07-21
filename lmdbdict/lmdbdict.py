@@ -49,8 +49,9 @@ class lmdbdict:
         # Make them picklable first
         # Note: If dumps and loads are already picklable like str or None
         # This functionwon't change them
-        dumps = picklable_wrapper(dumps)
-        loads = picklable_wrapper(loads)
+        if callable(dumps) and callable(loads):
+            dumps = PicklableWrapper(dumps)
+            loads = PicklableWrapper(loads)
 
         # The keys in the db
         db_dumps = f'__{which}_dumps__'.encode('ascii')
@@ -66,6 +67,10 @@ class lmdbdict:
             #     and (getattr(loads, '_obj', loads) == saved_loads or loads is None), \
             #     f'{which}_dumps and {which}_loads has to be the same as what\'s saved in the lmdb. Or just feed None'
             dumps, loads = saved_dumps, saved_loads
+            # Make them multiprocessing forkable
+            if callable(dumps) and callable(loads):
+                dumps = PicklableWrapper(dumps)
+                loads = PicklableWrapper(loads)
         elif self.mode == 'w':
             # Write to the db_txn
             self.db_txn.put(db_dumps, pickle.dumps(dumps))
