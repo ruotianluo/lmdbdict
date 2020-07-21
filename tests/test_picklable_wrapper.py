@@ -26,7 +26,9 @@ def test_picklable_wrapper():
 def _temporary_func():
     return 1
 
-def test_no_cloudpickle():
+
+@pytest.mark.skipif(not CLOUDPICKLE_AVAILABLE, reason="PickableWrapper requires cloudpickle")
+def test_no_cloudpickle_when_receive():
     # If object is pickable, it should remain the same after called picklable_wrapper
 
     # with cloudpickle
