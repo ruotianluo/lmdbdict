@@ -5,3 +5,4 @@ API Documentation
 
     lmdbdict
     utils
+    methods
