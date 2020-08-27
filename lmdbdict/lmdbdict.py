@@ -97,7 +97,7 @@ class lmdbdict:
             setattr(self, f'_{which}_loads', loads)
 
     def keys(self):
-        return list(self._keys)
+        return sorted(list(self._keys), key=lambda x:hash(x))
 
     def __contains__(self, item):
         return item in self._keys
