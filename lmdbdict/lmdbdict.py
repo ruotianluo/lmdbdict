@@ -8,13 +8,17 @@ class lmdbdict:
     def __init__(self, lmdb_path, mode='r',
                  key_method=None, value_method=None,
                  key_dumps=None, key_loads=None,
-                 value_dumps=None, value_loads=None):
+                 value_dumps=None, value_loads=None,
+                 unsafe=False):
         """
-        value_dumps/loads can be picklable functions
+        Args:
+        value/key_dumps/loads: can be picklable functions
         or str or None
         if None: then default pickle
         if 'identity' then func = lambda x: x
         if saved in the db, then use what's in db
+        unsafe: if True, you can getitem by the key even the key is not
+        in the self._keys.
         """
         self.lmdb_path = lmdb_path
         self.mode = mode
@@ -34,6 +38,8 @@ class lmdbdict:
 
         self._init_dumps_loads(value_method, value_dumps, value_loads, which='value')
         self._init_dumps_loads(key_method, key_dumps, key_loads, which='key')
+
+        self.unsafe = unsafe
 
     def _init_dumps_loads(self, method, dumps, loads, which='value'):
         """
@@ -133,9 +139,15 @@ class lmdbdict:
             self.db_txn = self.env.begin(write=True)
 
     def __getitem__(self, key):
-        if key not in self:
+        if not self.unsafe:
+            # Under safe mode, the key has to be in the self._keys
+            if not key in self:
+                raise KeyError
+        tmp = self.db_txn.get(self._key_dumps(key))
+        if tmp is None:
             raise KeyError
-        return self._value_loads(self.db_txn.get(self._key_dumps(key)))
+        else:
+            return self._value_loads(tmp)
 
     def __setitem__(self, key, value):
         assert self.mode == 'w', 'can only write item in write mode'

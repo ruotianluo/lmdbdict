@@ -164,3 +164,24 @@ def test_lambda_funcs_as_dumps_loads_input(tmpdir, random_input):
     assert set(test_dict.keys()) == set(random_input.keys())
     # Assert lens are correct
     assert len(test_dict) == len(random_input)
+
+
+# Test unsafe getitem and safe getitem.
+@pytest.mark.parametrize("module", [
+    lmdbdict, LMDBDict
+])
+def test_unsafe(tmpdir, random_input, module):
+    test_dict = module(os.path.join(tmpdir, 'test.lmdb'), 'w')
+    for k, v in random_input.items():
+        test_dict[k] = v
+    del test_dict
+    test_dict = module(os.path.join(tmpdir, 'test.lmdb'), 'r')
+    test_dict._keys = []
+    with pytest.raises(KeyError):
+        for k in random_input:
+            test_dict[k]
+    test_dict = module(os.path.join(tmpdir, 'test.lmdb'), 'r', unsafe=True)
+    test_dict._keys = []
+    for k,v in random_input.items():
+        assert test_dict[k] == v
+        
