@@ -1,3 +1,3 @@
 from .lmdbdict import lmdbdict, LMDBDict
 
-__version__ = "0.2"
+__version__ = "0.2.2"
