@@ -32,9 +32,13 @@ class lmdbdict:
                 if self.mode == 'w':
                     print('Warning: any change you make under write mode may not be revertable.')
         else:  # no keys
-            self._keys = set()
+            self._keys = []
             if self.mode == 'r':
                 print('Reading an empty lmdb')
+        # This is for backward compatiblility, starting from 0.3
+        # _keys should always be a list
+        if type(self._keys) is set:
+            self._keys = sorted(list(self._keys), key=lambda x:pickle.dumps(x))
 
         self._init_dumps_loads(value_method, value_dumps, value_loads, which='value')
         self._init_dumps_loads(key_method, key_dumps, key_loads, which='key')
@@ -103,7 +107,7 @@ class lmdbdict:
             setattr(self, f'_{which}_loads', loads)
 
     def keys(self):
-        return sorted(list(self._keys), key=lambda x:pickle.dumps(x))
+        return self._keys
 
     def __contains__(self, item):
         return item in self._keys
@@ -155,7 +159,7 @@ class lmdbdict:
         assert key not in ['__keys__'], \
             f'{key} is internal variable, immutable to users'
         self.db_txn.put(self._key_dumps(key), self._value_dumps(value))
-        self._keys.add(key)  # only update to the lmdb after flush
+        self._keys.append(key)  # only update to the lmdb after flush
 
     def __delitem__(self, key):
         self.db_txn.delete(self._key_dumps(key))
