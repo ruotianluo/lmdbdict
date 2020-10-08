@@ -162,6 +162,8 @@ class lmdbdict:
         self._keys.append(key)  # only update to the lmdb after flush
 
     def __delitem__(self, key):
+        assert self.mode == 'w', 'can only write item in write mode'
+        assert key in self._keys, f'{key} not in this lmdb'
         self.db_txn.delete(self._key_dumps(key))
         self._keys.remove(key)
 
