@@ -27,6 +27,15 @@ def random_input():
     return d
 
 
+@pytest.fixture
+def random_lmdbdict(tmpdir, random_input):
+    test_dict = lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'w')
+    for k, v in random_input.items():
+        test_dict[k] = v
+    del test_dict
+    return lmdbdict(os.path.join(tmpdir, 'test.lmdb'), 'r')
+
+
 # Make sure both LMDBDict and lmdbdict works
 @pytest.mark.parametrize("module", [
     lmdbdict, LMDBDict
@@ -184,4 +193,8 @@ def test_unsafe(tmpdir, random_input, module):
     test_dict._keys = []
     for k,v in random_input.items():
         assert test_dict[k] == v
-        
+
+
+def test_sequential_iter(random_lmdbdict):
+    for k,v in random_lmdbdict.sequential_iter():
+        print(k, v)

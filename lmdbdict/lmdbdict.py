@@ -4,6 +4,14 @@ import os
 from .utils import PicklableWrapper, picklable_wrapper
 from .methods import DUMPS_FUNC, LOADS_FUNC
 
+RESERVED = [
+    b'__keys__',
+    b'__key_dumps__',
+    b'__value_dumps__',
+    b'__key_loads__',
+    b'__value_loads__',
+]
+
 class lmdbdict:
     def __init__(self, lmdb_path, mode='r',
                  key_method=None, value_method=None,
@@ -199,6 +207,14 @@ class lmdbdict:
         self.db_txn.commit()
         self.db_txn = self.env.begin(write=True)
 
+    def sequential_iter(self):
+        c = self.db_txn.cursor()
+        for k, v in c:
+            if k not in RESERVED:
+                yield (self._key_loads(k), self._value_loads(v))
+
+
+# TODO separate the logic between lmdb handling and key, value dumps.
 
 # Aliasing
 LMDBDict = lmdbdict
