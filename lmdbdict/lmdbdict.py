@@ -17,7 +17,8 @@ class lmdbdict:
                  key_method=None, value_method=None,
                  key_dumps=None, key_loads=None,
                  value_dumps=None, value_loads=None,
-                 unsafe=False):
+                 unsafe=False,
+                 readahead=False):
         """
         Args:
         value/key_dumps/loads: can be picklable functions
@@ -27,9 +28,11 @@ class lmdbdict:
         if saved in the db, then use what's in db
         unsafe: if True, you can getitem by the key even the key is not
         in the self._keys.
+        readahead: for lmdb reader, only make sense when mode='r'
         """
         self.lmdb_path = lmdb_path
         self.mode = mode
+        self.readahead = readahead
         self._init_db()
         if self.db_txn.get(b'__keys__'):
             try:
@@ -138,7 +141,7 @@ class lmdbdict:
             self.env = lmdb.open(
                 self.lmdb_path,
                 subdir=os.path.isdir(self.lmdb_path),
-                readonly=True, lock=False,
+                readonly=self.readahead, lock=False,
                 readahead=False, map_size=1099511627776 * 2,
                 max_readers=100,
             )
