@@ -17,7 +17,7 @@ class lmdbdict:
                  key_method=None, value_method=None,
                  key_dumps=None, key_loads=None,
                  value_dumps=None, value_loads=None,
-                 unsafe=False,
+                 unsafe=False,subdir=False,
                  readahead=False):
         """
         Args:
@@ -28,11 +28,13 @@ class lmdbdict:
         if saved in the db, then use what's in db
         unsafe: if True, you can getitem by the key even the key is not
         in the self._keys.
+        subdir: if True, write data and lock files in a dir
         readahead: for lmdb reader, only make sense when mode='r'
         """
         self.lmdb_path = lmdb_path
         self.mode = mode
         self.readahead = readahead
+        self.subdir = subdir
         self._init_db()
         if self.db_txn.get(b'__keys__'):
             try:
@@ -148,7 +150,7 @@ class lmdbdict:
             self.db_txn = self.env.begin(write=False)
         elif self.mode == 'w':
             self.env = lmdb.open(
-                self.lmdb_path, subdir=False,
+                self.lmdb_path, subdir=self.subdir,
                 readonly=False, map_size=1099511627776 * 2,
                 meminit=False, map_async=True)
             self.db_txn = self.env.begin(write=True)
