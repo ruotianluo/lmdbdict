@@ -17,8 +17,11 @@ class lmdbdict:
                  key_method=None, value_method=None,
                  key_dumps=None, key_loads=None,
                  value_dumps=None, value_loads=None,
-                 unsafe=False,subdir=False,
-                 readahead=False):
+                 unsafe=False,
+                 map_size=1099511627776 * 2,
+                 subdir=False,
+                 readahead=False,
+                 max_readers=100):
         """
         Args:
         value/key_dumps/loads: can be picklable functions
@@ -28,13 +31,17 @@ class lmdbdict:
         if saved in the db, then use what's in db
         unsafe: if True, you can getitem by the key even the key is not
         in the self._keys.
-        subdir: if True, write data and lock files in a dir
+        map_size: maximum size database may grow to; used to size the memory mapping
+        subdir: if True, write data and lock files in a dir, only make sense when mode='w'
         readahead: for lmdb reader, only make sense when mode='r'
+        max_readers: maximum number of simultaneous read transactions, only make sense when mode='r'
         """
         self.lmdb_path = lmdb_path
         self.mode = mode
+        self.map_size = map_size
         self.readahead = readahead
         self.subdir = subdir
+        self.max_readers = max_readers
         self._init_db()
         if self.db_txn.get(b'__keys__'):
             try:
@@ -144,14 +151,14 @@ class lmdbdict:
                 self.lmdb_path,
                 subdir=os.path.isdir(self.lmdb_path),
                 readonly=self.readahead, lock=False,
-                readahead=False, map_size=1099511627776 * 2,
-                max_readers=100,
+                readahead=False, map_size=self.map_size,
+                max_readers=self.max_readers
             )
             self.db_txn = self.env.begin(write=False)
         elif self.mode == 'w':
             self.env = lmdb.open(
                 self.lmdb_path, subdir=self.subdir,
-                readonly=False, map_size=1099511627776 * 2,
+                readonly=False, map_size=self.map_size,
                 meminit=False, map_async=True)
             self.db_txn = self.env.begin(write=True)
 
