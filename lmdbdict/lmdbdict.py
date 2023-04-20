@@ -1,6 +1,7 @@
 import lmdb
 import pickle
 import os
+from functools import partial 
 from .utils import PicklableWrapper, picklable_wrapper
 from .methods import DUMPS_FUNC, LOADS_FUNC
 
@@ -116,7 +117,7 @@ class lmdbdict:
 
         if dumps is None or loads is None:
             assert dumps == loads, f'The {which}_dumps and {which}_loads have to be both None'
-            setattr(self, f'_{which}_dumps', pickle.dumps)
+            setattr(self, f'_{which}_dumps', partial(pickle.dumps,protocol=4))
             setattr(self, f'_{which}_loads', pickle.loads)
         elif type(dumps) is str and type(loads) is str:
             assert dumps == loads, f'The {which}_dumps and {which}_loads have to correspondant'
